@@ -1,4 +1,4 @@
-name: Deploy Next.js to AWS Amplify
+name: Deploy Next.js to S3
 
 on:
   push:
@@ -26,11 +26,6 @@ jobs:
       - name: Build Next.js app
         run: npm run build
 
-      - name: Create deployment archive
-        run: |
-          cd out
-          zip -r ../deployment.zip .
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,88 +33,44 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
-      - name: Get Amplify App ID
-        id: amplify-app
+      - name: Find S3 bucket
+        id: find-bucket
         run: |
-          APP_ID=$(aws amplify list-apps --region eu-west-2 \
-            --query "apps[?name=='zachtech.dev'].appId" \
-            --output text)
-          echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
-          echo "Found Amplify App ID: $APP_ID"
+          BUCKET=$(aws s3api list-buckets \
+            --query "Buckets[?starts_with(Name, 'zachtech.dev')].Name" \
+            --output text | head -n1)
+          echo "bucket_name=$BUCKET" >> $GITHUB_OUTPUT
+          echo "Found S3 bucket: $BUCKET"
 
-      - name: Cancel existing deployments
+      - name: Deploy to S3
         run: |
-          APP_ID=${{ steps.amplify-app.outputs.app_id }}
+          aws s3 sync out/ s3://${{ steps.find-bucket.outputs.bucket_name }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "*.json"
           
-          RUNNING_JOBS=$(aws amplify list-jobs \
-            --app-id $APP_ID \
-            --branch-name main \
-            --max-results 1 \
-            --query "jobSummaries[?status=='PENDING' || status=='RUNNING'].jobId" \
-            --output text)
+          aws s3 sync out/ s3://${{ steps.find-bucket.outputs.bucket_name }}/ \
+            --delete \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --exclude "*" \
+            --include "*.html" \
+            --include "*.json" \
+            --content-type "text/html"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?contains(Aliases.Items, 'zachtech.dev')].Id" \
+            --output text | head -n1)
           
-          if [ ! -z "$RUNNING_JOBS" ]; then
-            for JOB_ID in $RUNNING_JOBS; do
-              echo "Cancelling existing job: $JOB_ID"
-              aws amplify stop-job \
-                --app-id $APP_ID \
-                --branch-name main \
-                --job-id $JOB_ID
-            done
-            echo "Waiting for cancellation to complete..."
-            sleep 5
+          if [ ! -z "$DISTRIBUTION_ID" ]; then
+            echo "Found CloudFront distribution: $DISTRIBUTION_ID"
+            aws cloudfront create-invalidation \
+              --distribution-id $DISTRIBUTION_ID \
+              --paths "/*"
+            echo "CloudFront cache invalidated"
           else
-            echo "No running deployments to cancel"
+            echo "No CloudFront distribution found for zachtech.dev"
           fi
-
-      - name: Create and start deployment
-        id: deployment
-        run: |
-          DEPLOYMENT=$(aws amplify create-deployment \
-            --app-id ${{ steps.amplify-app.outputs.app_id }} \
-            --branch-name main \
-            --output json)
-          
-          JOB_ID=$(echo $DEPLOYMENT | jq -r '.jobId')
-          ZIP_UPLOAD_URL=$(echo $DEPLOYMENT | jq -r '.zipUploadUrl')
-          
-          echo "Uploading deployment archive..."
-          curl -X PUT "$ZIP_UPLOAD_URL" \
-            -H "Content-Type: application/zip" \
-            --data-binary @deployment.zip
-          
-          echo "Starting deployment with Job ID: $JOB_ID"
-          aws amplify start-deployment \
-            --app-id ${{ steps.amplify-app.outputs.app_id }} \
-            --branch-name main \
-            --job-id $JOB_ID
-          
-          echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
-
-      - name: Wait for deployment to complete
-        run: |
-          APP_ID=${{ steps.amplify-app.outputs.app_id }}
-          JOB_ID=${{ steps.deployment.outputs.job_id }}
-          
-          echo "Waiting for deployment to complete..."
-          while true; do
-            STATUS=$(aws amplify get-job \
-              --app-id $APP_ID \
-              --branch-name main \
-              --job-id $JOB_ID \
-              --query 'job.summary.status' \
-              --output text)
-            
-            echo "Current status: $STATUS"
-            
-            if [ "$STATUS" = "SUCCEED" ]; then
-              echo "Deployment completed successfully!"
-              exit 0
-            elif [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "CANCELLED" ]; then
-              echo "Deployment failed with status: $STATUS"
-              exit 1
-            fi
-            
-            sleep 10
-          done
 
