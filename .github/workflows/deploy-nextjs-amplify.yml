@@ -49,6 +49,31 @@ jobs:
           echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
           echo "Found Amplify App ID: $APP_ID"
 
+      - name: Cancel existing deployments
+        run: |
+          APP_ID=${{ steps.amplify-app.outputs.app_id }}
+          
+          RUNNING_JOBS=$(aws amplify list-jobs \
+            --app-id $APP_ID \
+            --branch-name main \
+            --max-results 1 \
+            --query "jobSummaries[?status=='PENDING' || status=='RUNNING'].jobId" \
+            --output text)
+          
+          if [ ! -z "$RUNNING_JOBS" ]; then
+            for JOB_ID in $RUNNING_JOBS; do
+              echo "Cancelling existing job: $JOB_ID"
+              aws amplify stop-job \
+                --app-id $APP_ID \
+                --branch-name main \
+                --job-id $JOB_ID
+            done
+            echo "Waiting for cancellation to complete..."
+            sleep 5
+          else
+            echo "No running deployments to cancel"
+          fi
+
       - name: Create and start deployment
         id: deployment
         run: |
