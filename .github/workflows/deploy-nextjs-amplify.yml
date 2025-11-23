@@ -50,6 +50,7 @@ jobs:
           echo "Found Amplify App ID: $APP_ID"
 
       - name: Create and start deployment
+        id: deployment
         run: |
           DEPLOYMENT=$(aws amplify create-deployment \
             --app-id ${{ steps.amplify-app.outputs.app_id }} \
@@ -69,4 +70,33 @@ jobs:
             --app-id ${{ steps.amplify-app.outputs.app_id }} \
             --branch-name main \
             --job-id $JOB_ID
+          
+          echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
+
+      - name: Wait for deployment to complete
+        run: |
+          APP_ID=${{ steps.amplify-app.outputs.app_id }}
+          JOB_ID=${{ steps.deployment.outputs.job_id }}
+          
+          echo "Waiting for deployment to complete..."
+          while true; do
+            STATUS=$(aws amplify get-job \
+              --app-id $APP_ID \
+              --branch-name main \
+              --job-id $JOB_ID \
+              --query 'job.summary.status' \
+              --output text)
+            
+            echo "Current status: $STATUS"
+            
+            if [ "$STATUS" = "SUCCEED" ]; then
+              echo "Deployment completed successfully!"
+              exit 0
+            elif [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "CANCELLED" ]; then
+              echo "Deployment failed with status: $STATUS"
+              exit 1
+            fi
+            
+            sleep 10
+          done
 
