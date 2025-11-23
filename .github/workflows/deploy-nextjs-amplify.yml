@@ -18,14 +18,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
+      - name: Get Amplify App ID
+        id: amplify-app
+        run: |
+          APP_ID=$(aws amplify list-apps --region eu-west-2 \
+            --query "apps[?name=='zachtech.dev'].appId" \
+            --output text)
+          echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+          echo "Found Amplify App ID: $APP_ID"
+
       - name: Trigger Amplify build
         run: |
-          APP_ID="${{ secrets.AMPLIFY_APP_ID }}"
-          BRANCH_NAME="${{ secrets.AMPLIFY_BRANCH_NAME }}"
-          
           JOB=$(aws amplify start-job \
-            --app-id $APP_ID \
-            --branch-name $BRANCH_NAME \
+            --app-id ${{ steps.amplify-app.outputs.app_id }} \
+            --branch-name main \
             --job-type RELEASE \
             --output json)
           
