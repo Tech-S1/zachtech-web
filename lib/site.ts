@@ -1,3 +1,17 @@
+export type SiteConfig = {
+  home: {
+    bio: string;
+    comingSoon: string;
+  };
+  footer: readonly { label: string; href: string }[];
+  nav: readonly {
+    label: string;
+    href: string;
+    description: string;
+    enabled: boolean;
+  }[];
+};
+
 export const site = {
   home: {
     bio: "DevOps / Platform Engineer focused on Kubernetes, cloud infrastructure, and automation. Outside work, you'll find me experimenting in my homelab and tinkering with smart home, security, and automation projects.",
@@ -21,7 +35,7 @@ export const site = {
       enabled: false,
     },
   ],
-} as const;
+} satisfies SiteConfig;
 
 export function getEnabledNav() {
   return site.nav.filter((item) => item.enabled);
