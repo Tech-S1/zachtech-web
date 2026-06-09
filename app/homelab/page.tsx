@@ -3,18 +3,17 @@ import { notFound } from "next/navigation";
 import { HomelabHardware } from "@/components/homelab-hardware";
 import { HomelabServices } from "@/components/homelab-services";
 import { SiteShell } from "@/components/site-shell";
-import { isPageEnabled, site } from "@/lib/site";
+import { homelab } from "@/lib/homelab";
+import { isPageEnabled } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Homelab · ZachTech",
 };
 
 export default function HomelabPage() {
-  if (!isPageEnabled("/homelab")) {
+  if (!isPageEnabled("/homelab") || !homelab) {
     notFound();
   }
-
-  const { homelab } = site;
 
   return (
     <SiteShell active="/homelab">

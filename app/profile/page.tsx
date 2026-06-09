@@ -6,18 +6,18 @@ import { ProfileLinks } from "@/components/profile-links";
 import { ProfileSkills } from "@/components/profile-skills";
 import { SiteShell } from "@/components/site-shell";
 import { getCertifications } from "@/lib/credly";
-import { isPageEnabled, site } from "@/lib/site";
+import { profile } from "@/lib/profile";
+import { isPageEnabled } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Profile · ZachTech",
 };
 
 export default async function ProfilePage() {
-  if (!isPageEnabled("/profile")) {
+  if (!isPageEnabled("/profile") || !profile) {
     notFound();
   }
 
-  const { profile } = site;
   const certifications = await getCertifications(profile.credlyUserId);
 
   return (
