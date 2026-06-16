@@ -2,8 +2,8 @@ name: Deploy Next.js to S3
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -31,6 +31,7 @@ jobs:
         run: npm run build
 
       - name: Find S3 bucket
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: find-bucket
         run: |
           BUCKET=$(aws s3api list-buckets \
@@ -40,6 +41,7 @@ jobs:
           echo "Found S3 bucket: $BUCKET"
 
       - name: Deploy to S3
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           BUCKET=${{ steps.find-bucket.outputs.bucket_name }}
 
@@ -65,6 +67,7 @@ jobs:
           fi
 
       - name: Invalidate CloudFront cache
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
             --query "DistributionList.Items[?contains(Aliases.Items, 'zachtech.dev')].Id" \
