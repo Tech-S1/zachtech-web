@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { HomelabHardware } from "@/components/homelab-hardware";
-import { HomelabServices } from "@/components/homelab-services";
-import { SiteShell } from "@/components/site-shell";
+import { HomelabHardware } from "@/components/homelab/hardware";
+import { HomelabHeader } from "@/components/homelab/header";
+import { HomelabServices } from "@/components/homelab/services";
 import { homelab } from "@/lib/homelab";
+import { createMetadata } from "@/lib/metadata";
 import { isPageEnabled } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createMetadata({
   title: "Homelab · ZachTech",
-};
+  description:
+    homelab?.header.intro ??
+    "Kubernetes, GitOps, and home automation in my homelab.",
+  path: "/homelab",
+});
 
 export default function HomelabPage() {
   if (!isPageEnabled("/homelab") || !homelab) {
@@ -16,15 +21,10 @@ export default function HomelabPage() {
   }
 
   return (
-    <SiteShell active="/homelab">
-      <h1 className="text-xl font-medium tracking-tight text-foreground sm:text-2xl">
-        Homelab
-      </h1>
-      <p className="mt-5 text-sm leading-relaxed text-muted">{homelab.intro}</p>
-
-      <HomelabHardware layout={homelab.hardware.layout} />
-
-      <HomelabServices items={homelab.services} />
-    </SiteShell>
+    <>
+      <HomelabHeader config={homelab.header} />
+      <HomelabHardware config={homelab.hardware} />
+      <HomelabServices groups={homelab.serviceGroups} />
+    </>
   );
 }

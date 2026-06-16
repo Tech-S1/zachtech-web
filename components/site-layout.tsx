@@ -5,13 +5,7 @@ import { site } from "@/lib/site";
 
 const shell = "mx-auto w-full max-w-3xl px-6 sm:max-w-4xl sm:px-10 lg:max-w-5xl lg:px-12";
 
-export function SiteShell({
-  children,
-  active,
-}: {
-  children: React.ReactNode;
-  active?: string;
-}) {
+export function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className={`${shell} py-6 sm:py-8`}>
@@ -19,7 +13,7 @@ export function SiteShell({
           <Link href="/" className="flex h-full items-center">
             <Wordmark />
           </Link>
-          <SiteNav active={active} />
+          <SiteNav />
         </div>
       </header>
 

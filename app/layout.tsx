@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fira_Code } from "next/font/google";
+import { SiteLayout } from "@/components/site-layout";
+import { rootMetadata, siteUrl } from "@/lib/metadata";
 import "./globals.css";
 
 const firaCode = Fira_Code({
@@ -8,7 +10,8 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "ZachTech",
+  metadataBase: new URL(siteUrl),
+  ...rootMetadata,
 };
 
 export default function RootLayout({
@@ -18,7 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${firaCode.variable} antialiased`}>{children}</body>
+      <body className={`${firaCode.variable} antialiased`}>
+        <SiteLayout>{children}</SiteLayout>
+      </body>
     </html>
   );
 }

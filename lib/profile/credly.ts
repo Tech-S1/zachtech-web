@@ -66,7 +66,10 @@ export async function getCertifications(
   try {
     const res = await fetch(
       `https://www.credly.com/users/${userId}/badges?page=1&page_size=48`,
-      { headers: { Accept: "application/json" } }
+      {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 86400 },
+      }
     );
 
     if (!res.ok) {

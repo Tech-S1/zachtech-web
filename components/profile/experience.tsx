@@ -1,23 +1,20 @@
-import { PageSection } from "@/components/site-shell";
-
-type ExperienceEntry = {
-  title: string;
-  project: string;
-  period: string;
-  summary?: string;
-  concurrent?: boolean;
-};
+import { PageSection } from "@/components/site-layout";
+import type { ProfileConfig } from "@/lib/profile";
 
 export function ProfileExperience({
-  items,
+  config,
 }: {
-  items: readonly ExperienceEntry[];
+  config?: ProfileConfig["experience"];
 }) {
+  if (!config || config.length === 0) {
+    return null;
+  }
+
   return (
     <div className="mt-8">
       <PageSection title="Experience">
         <ul className="space-y-5">
-          {items.map((entry) => (
+          {config.map((entry) => (
             <li key={`${entry.project}-${entry.period}`}>
               <p className="text-sm text-foreground">
                 <span className="font-medium">{entry.title}</span>
@@ -27,11 +24,9 @@ export function ProfileExperience({
                 {entry.period}
                 {entry.concurrent && <> · concurrent</>}
               </p>
-              {entry.summary && (
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                  {entry.summary}
-                </p>
-              )}
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                {entry.summary}
+              </p>
             </li>
           ))}
         </ul>

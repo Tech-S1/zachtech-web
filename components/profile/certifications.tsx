@@ -1,22 +1,24 @@
-"use client";
-
-import { PageSection } from "@/components/site-shell";
+import { PageSection } from "@/components/site-layout";
 import {
+  getCertifications,
   isActiveCertification,
   sortCertifications,
-  type Certification,
-} from "@/lib/credly";
+} from "@/lib/profile/credly";
+import type { ProfileConfig } from "@/lib/profile";
 
-export function Certifications({
-  items,
-  pinned = [],
+export async function Certifications({
+  config,
 }: {
-  items: Certification[];
-  pinned?: readonly string[];
+  config?: ProfileConfig["certifications"];
 }) {
+  if (!config) {
+    return null;
+  }
+
+  const items = await getCertifications(config.credlyUserId);
   const active = sortCertifications(
     items.filter((cert) => isActiveCertification(cert.expiresAt)),
-    pinned
+    config.pinnedCertifications
   );
 
   if (active.length === 0) {

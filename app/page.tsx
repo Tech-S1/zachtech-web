@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SiteShell } from "@/components/site-shell";
 import { Wordmark } from "@/components/wordmark";
 import { getEnabledNav, site } from "@/lib/site";
 
@@ -7,8 +6,7 @@ export default function Home() {
   const nav = getEnabledNav();
 
   return (
-    <SiteShell>
-      <div className="lg:grid lg:grid-cols-[1.75fr_1fr] lg:gap-8 xl:gap-10">
+    <div className="lg:grid lg:grid-cols-[1.75fr_1fr] lg:gap-8 xl:gap-10">
         <div>
           <h1>
             <Wordmark large prompt={false} />
@@ -48,7 +46,6 @@ export default function Home() {
             </p>
           </div>
         )}
-      </div>
-    </SiteShell>
+    </div>
   );
 }

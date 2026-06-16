@@ -7,15 +7,14 @@ type RackItemType = "display" | "patch" | "switch" | "server";
 type RackItem = {
   name: string;
   type: RackItemType;
-  role?: string;
-  label?: string;
-  specs?: string;
+  role: string;
+  specs: string;
 };
 
 type ApItem = {
   name: string;
-  specs?: string;
-  role?: string;
+  role: string;
+  specs: string;
 };
 
 type RackLayout = {
@@ -46,10 +45,6 @@ function RackSlotHover({
   onToggle: (name: string) => void;
   children: ReactNode;
 }) {
-  if (!item.specs) {
-    return children;
-  }
-
   const isActive = activeId === item.name;
 
   return (
@@ -80,20 +75,14 @@ function RackSlotHover({
           isActive ? "max-sm:opacity-100" : ""
         } top-full right-0 left-0 mt-1.5 sm:top-1/2 sm:right-auto sm:left-[calc(100%+0.5rem)] sm:mt-0 sm:w-max sm:max-w-56 sm:-translate-y-1/2 sm:group-hover/slot:opacity-100`}
       >
-        {item.role && (
-          <p className="mb-1 font-bold text-foreground">{item.role}</p>
-        )}
+        <p className="mb-1 font-bold text-foreground">{item.role}</p>
         <p className="text-foreground/90">{item.specs}</p>
       </div>
     </div>
   );
 }
 
-function slotClass(specs: string | undefined, isActive: boolean) {
-  if (!specs) {
-    return itemBorder;
-  }
-
+function slotClass(isActive: boolean) {
   return `${itemBorder} transition-colors sm:cursor-default ${
     isActive ? "max-sm:border-accent" : ""
   } sm:group-hover/slot:border-accent`;
@@ -101,16 +90,14 @@ function slotClass(specs: string | undefined, isActive: boolean) {
 
 function ApSideMount({
   name,
-  specs,
   isActive,
 }: {
   name: string;
-  specs?: string;
   isActive: boolean;
 }) {
   return (
     <div
-      className={`rounded-sm ${itemShell} px-2 py-2 ${slotClass(specs, isActive)}`}
+      className={`rounded-sm ${itemShell} px-2 py-2 ${slotClass(isActive)}`}
     >
       <div className="mx-auto w-[4.5rem]">
         <div
@@ -133,15 +120,13 @@ function ApSideMount({
 
 function DisplaySlot({
   name,
-  specs,
   isActive,
 }: {
   name: string;
-  specs?: string;
   isActive: boolean;
 }) {
   return (
-    <div className={`${itemShell} ${slotClass(specs, isActive)}`}>
+    <div className={`${itemShell} ${slotClass(isActive)}`}>
       <div className={`mx-auto mb-1.5 h-8 rounded-sm ${deviceFace}`} />
       <p className={itemLabel}>{name}</p>
     </div>
@@ -150,15 +135,13 @@ function DisplaySlot({
 
 function PatchSlot({
   name,
-  specs,
   isActive,
 }: {
   name: string;
-  specs?: string;
   isActive: boolean;
 }) {
   return (
-    <div className={`${itemShell} ${slotClass(specs, isActive)}`}>
+    <div className={`${itemShell} ${slotClass(isActive)}`}>
       <div className="flex justify-center gap-0.5">
         {Array.from({ length: 8 }).map((_, index) => (
           <span
@@ -175,15 +158,13 @@ function PatchSlot({
 
 function SwitchSlot({
   name,
-  specs,
   isActive,
 }: {
   name: string;
-  specs?: string;
   isActive: boolean;
 }) {
   return (
-    <div className={`${itemShell} ${slotClass(specs, isActive)}`}>
+    <div className={`${itemShell} ${slotClass(isActive)}`}>
       <div className="flex items-center justify-center gap-1">
         {Array.from({ length: 8 }).map((_, index) => (
           <span
@@ -202,16 +183,13 @@ function SwitchSlot({
 
 function ServerSlot({
   name,
-  specs,
   isActive,
 }: {
   name: string;
-  role?: string;
-  specs?: string;
   isActive: boolean;
 }) {
   return (
-    <div className={`${itemShell} ${slotClass(specs, isActive)}`}>
+    <div className={`${itemShell} ${slotClass(isActive)}`}>
       <div className={`relative mx-auto h-5 w-14 rounded-sm ${deviceFace}`}>
         <span
           className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent shadow-[0_0_4px_var(--accent)]"
@@ -237,20 +215,13 @@ function RackSlot({
   const content = (() => {
     switch (item.type) {
       case "display":
-        return <DisplaySlot name={item.name} specs={item.specs} isActive={isActive} />;
+        return <DisplaySlot name={item.name} isActive={isActive} />;
       case "patch":
-        return <PatchSlot name={item.name} specs={item.specs} isActive={isActive} />;
+        return <PatchSlot name={item.name} isActive={isActive} />;
       case "switch":
-        return <SwitchSlot name={item.name} specs={item.specs} isActive={isActive} />;
+        return <SwitchSlot name={item.name} isActive={isActive} />;
       case "server":
-        return (
-          <ServerSlot
-            name={item.name}
-            role={item.role}
-            specs={item.specs}
-            isActive={isActive}
-          />
-        );
+        return <ServerSlot name={item.name} isActive={isActive} />;
     }
   })();
 
@@ -262,12 +233,10 @@ function RackSlot({
 }
 
 function ServicesBox({
-  label,
   item,
   activeId,
   onToggle,
 }: {
-  label: string;
   item: RackItem;
   activeId: string | null;
   onToggle: (name: string) => void;
@@ -277,14 +246,9 @@ function ServicesBox({
   return (
     <div className="w-full max-w-[13rem]">
       <div className={`${outerBox} overflow-visible`}>
-        <p className={sectionLabel}>{label}</p>
+        <p className={sectionLabel}>Other services</p>
         <RackSlotHover item={item} activeId={activeId} onToggle={onToggle}>
-          <ServerSlot
-            name={item.name}
-            role={item.role}
-            specs={item.specs}
-            isActive={isActive}
-          />
+          <ServerSlot name={item.name} isActive={isActive} />
         </RackSlotHover>
       </div>
     </div>
@@ -330,7 +294,6 @@ export function HomelabRack({ layout }: { layout: RackLayout }) {
                 >
                   <ApSideMount
                     name={layout.ap.name}
-                    specs={layout.ap.specs}
                     isActive={activeId === layout.ap.name}
                   />
                 </RackSlotHover>
@@ -350,7 +313,6 @@ export function HomelabRack({ layout }: { layout: RackLayout }) {
         </div>
 
         <ServicesBox
-          label={layout.external.label ?? "Other services"}
           item={layout.external}
           activeId={activeId}
           onToggle={handleToggle}

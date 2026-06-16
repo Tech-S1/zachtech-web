@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { getEnabledNav } from "@/lib/site";
 
@@ -12,8 +13,9 @@ function navLinkClass(isActive: boolean) {
   }`;
 }
 
-export function SiteNav({ active }: { active?: string }) {
+export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const items = getEnabledNav();
 
   if (items.length === 0) {
@@ -54,7 +56,7 @@ export function SiteNav({ active }: { active?: string }) {
         } sm:relative sm:top-auto sm:mt-0 sm:flex sm:min-w-0 sm:flex-row sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none`}
       >
         {items.map((item) => {
-          const isActive = active === item.href;
+          const isActive = pathname === item.href;
 
           return (
             <Link

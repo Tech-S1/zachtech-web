@@ -1,3 +1,6 @@
+import { homelab } from "@/lib/homelab";
+import { profile } from "@/lib/profile";
+
 export type SiteConfig = {
   home: {
     bio: string;
@@ -12,7 +15,7 @@ export type SiteConfig = {
   }[];
 };
 
-export const site = {
+export const site: SiteConfig = {
   home: {
     bio: "DevOps / Platform Engineer focused on Kubernetes, cloud infrastructure, and automation. Outside work, you'll find me experimenting in my homelab and tinkering with smart home, security, and automation projects.",
     comingSoon: "More soon.",
@@ -26,22 +29,33 @@ export const site = {
       label: "Profile",
       href: "/profile",
       description: "Professional background and bio",
-      enabled: false,
+      enabled: true,
     },
     {
       label: "Homelab",
       href: "/homelab",
       description: "Kubernetes, GitOps, and home automation",
-      enabled: false,
+      enabled: true,
     },
   ],
-} satisfies SiteConfig;
+};
 
-export function getEnabledNav() {
-  return site.nav.filter((item) => item.enabled);
-}
+const pageHasConfig: Record<string, boolean> = {
+  "/profile": profile !== null,
+  "/homelab": homelab !== null,
+};
 
 export function isPageEnabled(href: string) {
   const item = site.nav.find((entry) => entry.href === href);
-  return item?.enabled ?? false;
+  if (!item?.enabled) {
+    return false;
+  }
+  if (href in pageHasConfig && !pageHasConfig[href]) {
+    return false;
+  }
+  return true;
+}
+
+export function getEnabledNav() {
+  return site.nav.filter((item) => isPageEnabled(item.href));
 }
