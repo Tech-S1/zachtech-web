@@ -13,21 +13,9 @@
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
-      "groupName": "Next.js",
-      "matchPackageNames": ["next", "eslint-config-next"]
-    },
-    {
-      "groupName": "React",
-      "matchPackageNames": ["react", "react-dom", "/@types/react*/"]
-    },
-    {
-      "groupName": "Tailwind CSS",
-      "matchPackageNames": ["tailwindcss", "@tailwindcss/postcss"]
-    },
-    {
-      "groupName": "TypeScript and ESLint",
-      "matchPackageNames": ["typescript", "@types/node", "eslint"]
-    },
+      "groupName": "all npm dependencies",
+      "matchManagers": ["npm"]
+    },    
     {
       "groupName": "GitHub Actions",
       "matchManagers": ["github-actions"]
