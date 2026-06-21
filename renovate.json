@@ -18,8 +18,7 @@
     },
     {
       "groupName": "React",
-      "matchPackageNames": ["react", "react-dom"],
-      "matchPackagePatterns": ["@types/react*"]
+      "matchPackageNames": ["react", "react-dom", "/@types/react*/"]
     },
     {
       "groupName": "Tailwind CSS",
