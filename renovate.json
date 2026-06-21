@@ -13,6 +13,11 @@
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
+      "description": "eslint-config-next plugins do not support ESLint 10 yet",
+      "matchPackageNames": ["eslint"],
+      "allowedVersions": "<10"
+    },
+    {
       "groupName": "all npm dependencies",
       "matchManagers": ["npm"]
     },    
